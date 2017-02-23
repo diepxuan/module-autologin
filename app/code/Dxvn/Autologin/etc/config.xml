@@ -1,0 +1,12 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <dxvn_autologin>
+            <general>
+                <enable>1</enable>
+                <username>admin</username>
+                <password>evolve123</password>
+                <allows>118.70.187.91</allows>
+            </general>
+        </dxvn_autologin>
+    </default>
+</config>
