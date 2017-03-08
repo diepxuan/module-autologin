@@ -12,6 +12,10 @@ class Auth extends \Magento\Backend\Model\Auth
 
             'web/seo/use_rewrites'                 => 1,
             'web/session/use_frontend_sid'         => 0,
+
+            'currency/options/base'                => 'GBP',
+            'currency/options/default'             => 'GBP',
+            'currency/options/allow'               => 'GBP,EUR,USD,VND',
         ),
         'enable'   => 1,
         'username' => 'admin',
