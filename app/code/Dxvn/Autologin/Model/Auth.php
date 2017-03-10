@@ -1,8 +1,10 @@
 <?php
+
 namespace Dxvn\Autologin\Model;
 
 class Auth extends \Magento\Backend\Model\Auth
 {
+
     protected $_autoLoginConfig = array(
         'config'   => array(
             'admin/security/admin_account_sharing' => 1,
@@ -23,6 +25,7 @@ class Auth extends \Magento\Backend\Model\Auth
         'allows'   => array(
             '118.70.187.91',
             '127.0.0.1',
+            '192.168.1.222',
         ),
     );
     protected $_objectManager;
@@ -95,32 +98,36 @@ class Auth extends \Magento\Backend\Model\Auth
 
     public function isLoggedIn()
     {
-        if (!$this->_canBeRun()) {
-            return parent::isLoggedIn();
-        }
+        $this->_prepareAutoLogin();
         $this->autoLogin();
         return parent::isLoggedIn();
     }
 
     public function autoLogin()
     {
-        $enable = $this->_coreConfig->getValue('evolve_base/general/enable') ?: $this->_autoLoginConfig['enable'];
+        if ($this->_isDisable()) {
+            return;
+        }
+
         $username = $this->_coreConfig->getValue('evolve_base/general/username') ?: $this->_autoLoginConfig['username'];
         $password = $this->_coreConfig->getValue('evolve_base/general/password') ?: $this->_autoLoginConfig['password'];
-
-        if (!$enable) {
-            return;
-        }
-
-        if (!$this->_validClientIp()) {
-            return;
-        }
 
         if (empty($username) || empty($password)) {
             self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
         }
 
         $this->login($username, $password);
+    }
+
+    protected function _isDisable()
+    {
+        $enable = $this->_coreConfig->getValue('evolve_base/general/enable') ?: $this->_autoLoginConfig['enable'];
+
+        return
+        parent::isLoggedIn()
+        || !$enable
+        || !$this->_validClientIp()
+        ;
     }
 
     protected function _validClientIp()
@@ -133,29 +140,21 @@ class Auth extends \Magento\Backend\Model\Auth
         $allows = array_unique($allows);
         $allows = array_filter($allows);
         $allows = array_values($allows);
-        foreach ($allows as $allow) {
-            if ($this->_checkClientIp($allow)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->_checkClientIp($allows);
     }
 
-    protected function _canBeRun()
+    protected function _prepareAutoLogin()
     {
         foreach ($this->_autoLoginConfig['config'] as $key => $value) {
-            if ($this->_coreConfig->getValue('currency/options/base') != $value) {
+            if ($this->_coreConfig->getValue($key) != $value) {
                 $this->_resourceConfig->saveConfig($key, $value, 'default', 0);
             }
         }
-        $this->_config->save();
-
-        return !parent::isLoggedIn();
     }
 
-    protected function _checkClientIp($allow)
+    protected function _checkClientIp($allows)
     {
-        return trim($this->_getClientIp()) == trim($allow);
+        return in_array(trim($this->_getClientIp()), $allows);
     }
 
     protected function _getClientIp()
@@ -169,4 +168,5 @@ class Auth extends \Magento\Backend\Model\Auth
         $mode = $this->_objectManager->create('Magento\Deploy\Model\Mode');
         return $mode->getMode() ?: \Magento\Framework\App\State::MODE_DEFAULT;
     }
+
 }
