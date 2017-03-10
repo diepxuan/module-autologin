@@ -30,20 +30,67 @@ class Auth extends \Magento\Backend\Model\Auth
     protected $_resourceConfig;
 
     public function __construct(
-        \Magento\Framework\Event\ManagerInterface               $eventManager,
-        \Magento\Backend\Helper\Data                            $backendData,
-        \Magento\Backend\Model\Auth\StorageInterface            $authStorage,
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Backend\Helper\Data $backendData,
+        \Magento\Backend\Model\Auth\StorageInterface $authStorage,
         \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage,
-        \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig,
-        \Magento\Framework\Data\Collection\ModelFactory         $modelFactory,
-        \Magento\Framework\ObjectManagerInterface               $objectManager,
-        \Magento\Config\Model\Config                            $config,
-        \Magento\Config\Model\ResourceModel\Config              $resourceConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $coreConfig,
+        \Magento\Framework\Data\Collection\ModelFactory $modelFactory,
+        \Magento\Framework\ObjectManagerInterface $objectManager,
+        \Magento\Config\Model\Config $config,
+        \Magento\Config\Model\ResourceModel\Config $resourceConfig
     ) {
-        $this->_objectManager  = $objectManager;
-        $this->_config         = $config;
+        $this->_objectManager = $objectManager;
+        $this->_config = $config;
         $this->_resourceConfig = $resourceConfig;
         parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
+    }
+
+    /**
+     * Perform login process
+     *
+     * @param string $username
+     * @param string $password
+     * @return void
+     * @throws \Magento\Framework\Exception\AuthenticationException
+     */
+    public function login($username, $password)
+    {
+        if (empty($username) || empty($password)) {
+            self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
+        }
+
+        try {
+            $this->_initCredentialStorage();
+            $this->getCredentialStorage()->login($username, $password);
+            if ($this->getCredentialStorage()->getId()) {
+                $this->getAuthStorage()->setUser($this->getCredentialStorage());
+                $this->getAuthStorage()->processLogin();
+
+                $this->_eventManager->dispatch(
+                    'backend_auth_user_login_success',
+                    ['user' => $this->getCredentialStorage()]
+                );
+            }
+
+            if (!$this->getAuthStorage()->getUser()) {
+                self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
+            }
+        } catch (PluginAuthenticationException $e) {
+            $this->_eventManager->dispatch(
+                'backend_auth_user_login_failed',
+                ['user_name' => $username, 'exception' => $e]
+            );
+            throw $e;
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $this->_eventManager->dispatch(
+                'backend_auth_user_login_failed',
+                ['user_name' => $username, 'exception' => $e]
+            );
+            self::throwException(
+                __($e->getMessage() ?: 'You did not sign in correctly or your account is temporarily disabled.')
+            );
+        }
     }
 
     public function isLoggedIn()
@@ -57,7 +104,7 @@ class Auth extends \Magento\Backend\Model\Auth
 
     public function autoLogin()
     {
-        $enable   = $this->_coreConfig->getValue('evolve_base/general/enable') ?: $this->_autoLoginConfig['enable'];
+        $enable = $this->_coreConfig->getValue('evolve_base/general/enable') ?: $this->_autoLoginConfig['enable'];
         $username = $this->_coreConfig->getValue('evolve_base/general/username') ?: $this->_autoLoginConfig['username'];
         $password = $this->_coreConfig->getValue('evolve_base/general/password') ?: $this->_autoLoginConfig['password'];
 
@@ -97,8 +144,9 @@ class Auth extends \Magento\Backend\Model\Auth
     protected function _canBeRun()
     {
         foreach ($this->_autoLoginConfig['config'] as $key => $value) {
-            $this->_config->setDataByPath($key, $value);
-            $this->_resourceConfig->saveConfig($key, $value, 'default', 0);
+            if ($this->_coreConfig->getValue('currency/options/base') != $value) {
+                $this->_resourceConfig->saveConfig($key, $value, 'default', 0);
+            }
         }
         $this->_config->save();
 
