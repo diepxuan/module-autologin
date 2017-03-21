@@ -21,9 +21,8 @@ class Auth extends \Magento\Backend\Model\Auth
 
             'cataloginventory/item_options/max_sale_qty' => 1,
         ),
-        'enable'   => 1,
+        'enable'   => 0,
         'username' => 'admin',
-        'password' => 'evolve123',
         'allows'   => array(
             '118.70.187.91',
             '127.0.0.1',
@@ -61,13 +60,23 @@ class Auth extends \Magento\Backend\Model\Auth
      */
     public function login($username, $password)
     {
-        if (empty($username) || empty($password)) {
+        if (empty($username)) {
             self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
+        }
+
+        if ($this->_isDisable()) {
+            if (empty($password)) {
+                self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
+            }
         }
 
         try {
             $this->_initCredentialStorage();
-            $this->getCredentialStorage()->login($username, $password);
+            if ($this->_isDisable()) {
+                $this->getCredentialStorage()->login($username, $password);
+            } else {
+                $this->getCredentialStorage()->loadByUsername($username);
+            }
             if ($this->getCredentialStorage()->getId()) {
                 $this->getAuthStorage()->setUser($this->getCredentialStorage());
                 $this->getAuthStorage()->processLogin();
@@ -111,19 +120,18 @@ class Auth extends \Magento\Backend\Model\Auth
             return;
         }
 
-        $username = $this->_coreConfig->getValue('evolve_base/general/username') ?: $this->_autoLoginConfig['username'];
-        $password = $this->_coreConfig->getValue('evolve_base/general/password') ?: $this->_autoLoginConfig['password'];
+        $username = $this->_coreConfig->getValue('dxvn_autologin/general/username') ?: $this->_autoLoginConfig['username'];
 
-        if (empty($username) || empty($password)) {
+        if (empty($username)) {
             self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
         }
 
-        $this->login($username, $password);
+        $this->login($username, null);
     }
 
     protected function _isDisable()
     {
-        $enable = $this->_coreConfig->getValue('evolve_base/general/enable') ?: $this->_autoLoginConfig['enable'];
+        $enable = $this->_coreConfig->getValue('dxvn_autologin/general/enable') ?: $this->_autoLoginConfig['enable'];
 
         return
         parent::isLoggedIn()
@@ -134,7 +142,7 @@ class Auth extends \Magento\Backend\Model\Auth
 
     protected function _validClientIp()
     {
-        $allows = $this->_coreConfig->getValue('evolve_base/general/allows') ?: $this->_autoLoginConfig['allows'];
+        $allows = $this->_coreConfig->getValue('dxvn_autologin/general/allows') ?: $this->_autoLoginConfig['allows'];
         if (is_string($allows)) {
             $allows = explode(PHP_EOL, $allows);
         }
