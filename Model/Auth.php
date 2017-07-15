@@ -7,19 +7,13 @@ class Auth extends \Magento\Backend\Model\Auth
 
     protected $_autoLoginConfig = array(
         'config'   => array(
-            'admin/security/admin_account_sharing'       => 1,
-            'admin/security/use_form_key'                => 0,
+            'admin/security/admin_account_sharing' => 1,
+            'admin/security/use_form_key'          => 0,
 
-            'customer/startup/redirect_dashboard'        => 0,
+            'customer/startup/redirect_dashboard'  => 0,
 
-            'web/seo/use_rewrites'                       => 1,
-            'web/session/use_frontend_sid'               => 0,
-
-            'currency/options/base'                      => 'GBP',
-            'currency/options/default'                   => 'GBP',
-            'currency/options/allow'                     => 'GBP,EUR,USD,VND',
-
-            'cataloginventory/item_options/max_sale_qty' => 1,
+            'web/seo/use_rewrites'                 => 1,
+            'web/session/use_frontend_sid'         => 0,
         ),
         'enable'   => 0,
         'username' => 'admin',
@@ -34,18 +28,18 @@ class Auth extends \Magento\Backend\Model\Auth
     protected $_resourceConfig;
 
     public function __construct(
-        \Magento\Framework\Event\ManagerInterface $eventManager,
-        \Magento\Backend\Helper\Data $backendData,
-        \Magento\Backend\Model\Auth\StorageInterface $authStorage,
+        \Magento\Framework\Event\ManagerInterface               $eventManager,
+        \Magento\Backend\Helper\Data                            $backendData,
+        \Magento\Backend\Model\Auth\StorageInterface            $authStorage,
         \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage,
-        \Magento\Framework\App\Config\ScopeConfigInterface $coreConfig,
-        \Magento\Framework\Data\Collection\ModelFactory $modelFactory,
-        \Magento\Framework\ObjectManagerInterface $objectManager,
-        \Magento\Config\Model\Config $config,
-        \Magento\Config\Model\ResourceModel\Config $resourceConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig,
+        \Magento\Framework\Data\Collection\ModelFactory         $modelFactory,
+        \Magento\Framework\ObjectManagerInterface               $objectManager,
+        \Magento\Config\Model\Config                            $config,
+        \Magento\Config\Model\ResourceModel\Config              $resourceConfig
     ) {
-        $this->_objectManager = $objectManager;
-        $this->_config = $config;
+        $this->_objectManager  = $objectManager;
+        $this->_config         = $config;
         $this->_resourceConfig = $resourceConfig;
         parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
     }
