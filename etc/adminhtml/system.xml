@@ -1,11 +1,12 @@
+<?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <system>
-        <tab id="dxvn" translate="label" sortOrder="1000">
+        <tab id="diepxuan" translate="label" sortOrder="1000">
             <label>Dxvn</label>
         </tab>
-        <section id="dxvn_autologin" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="diepxuan_autologin" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Autologin</label>
-            <tab>dxvn</tab>
+            <tab>diepxuan</tab>
             <resource>Dxvn_Autologin::config</resource>
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>AutoLogin</label>

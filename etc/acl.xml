@@ -6,7 +6,7 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Dxvn_Autologin::config" title="Dxvn config"/>
+                            <resource id="Diepxuan_Autologin::config" title="DX config"/>
                         </resource>
                     </resource>
                 </resource>
