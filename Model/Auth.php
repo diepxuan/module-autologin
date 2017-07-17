@@ -4,6 +4,9 @@ namespace Diepxuan\Autologin\Model;
 
 class Auth extends \Magento\Backend\Model\Auth
 {
+    const ENABLE   = 'admin/autologin/enable';
+    const USERNAME = 'admin/autologin/username';
+    const ALLOWS   = 'admin/autologin/allows';
 
     protected $_autoLoginConfig = array(
         'config'   => array(
@@ -119,7 +122,7 @@ class Auth extends \Magento\Backend\Model\Auth
             return;
         }
 
-        $username = $this->_coreConfig->getValue('diepxuan_autologin/general/username') ?: $this->_autoLoginConfig['username'];
+        $username = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::USERNAME) ?: $this->_autoLoginConfig['username'];
 
         if (empty($username)) {
             self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
@@ -130,7 +133,7 @@ class Auth extends \Magento\Backend\Model\Auth
 
     protected function _isDisable()
     {
-        $enable = $this->_coreConfig->getValue('diepxuan_autologin/general/enable') ?: $this->_autoLoginConfig['enable'];
+        $enable = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::ENABLE) ?: $this->_autoLoginConfig['enable'];
 
         return
         parent::isLoggedIn()
@@ -141,7 +144,7 @@ class Auth extends \Magento\Backend\Model\Auth
 
     protected function _validClientIp()
     {
-        $allows = $this->_coreConfig->getValue('diepxuan_autologin/general/allows') ?: $this->_autoLoginConfig['allows'];
+        $allows = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::ALLOWS) ?: $this->_autoLoginConfig['allows'];
         if (is_string($allows)) {
             $allows = explode(PHP_EOL, $allows);
         }

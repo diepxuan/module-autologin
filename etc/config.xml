@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <diepxuan_autologin>
-            <general>
-                <enable>1</enable>
+        <admin>
+            <autologin>
+                <enable>0</enable>
                 <username>admin</username>
                 <allows>127.0.0.1</allows>
-            </general>
-        </diepxuan_autologin>
+            </autologin>
+        </admin>
     </default>
 </config>
