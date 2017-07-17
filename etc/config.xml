@@ -5,7 +5,6 @@
             <general>
                 <enable>1</enable>
                 <username>admin</username>
-                <password>password</password>
                 <allows>127.0.0.1</allows>
             </general>
         </diepxuan_autologin>

@@ -104,7 +104,12 @@ class Auth extends \Magento\Backend\Model\Auth
     public function isLoggedIn()
     {
         $this->_prepareAutoLogin();
-        $this->autoLogin();
+
+        try {
+            $this->autoLogin();
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            return parent::isLoggedIn();
+        }
         return parent::isLoggedIn();
     }
 
@@ -120,7 +125,7 @@ class Auth extends \Magento\Backend\Model\Auth
             self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
         }
 
-        $this->login($username, null);
+        return $this->login($username, null);
     }
 
     protected function _isDisable()
