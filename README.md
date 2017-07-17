@@ -1,7 +1,7 @@
 Autologin module for Magento 2
 ==================
-[![Latest version](https://img.shields.io/badge/latest-1.0.2-green.svg)](https://packagist.org/packages/diepxuan/module-autologin)
-[![Packagist]((https://img.shields.io/badge/autologin-green.svg))](https://packagist.org/packages/diepxuan/module-autologin)
+[![Latest version](https://img.shields.io/badge/latest-1.0.2-green.svg)](https://github.com/diepxuan/module-autologin)
+[![Packagist](https://img.shields.io/badge/packagist-1.0.2-green.svg)](https://packagist.org/packages/diepxuan/module-autologin)
 [![Magento 2](https://img.shields.io/badge/Magento-%3E=2.1-blue.svg)](https://github.com/magento/magento2/tree/2.1)
 [![PHP >= 5.5.22](https://img.shields.io/badge/PHP-%3E=5.6.5-blue.svg)](https://packagist.org/packages/diepxuan/module-autologin)
 
@@ -11,7 +11,7 @@ Autologin module for Magento 2
 Autologin
 --------------
 
-This extension replaces the default search of Magento with a typo-tolerant, fast & relevant search experience backed by Algolia. It's based on [algoliasearch-client-php](https://github.com/algolia/algoliasearch-client-php), [autocomplete.js](https://github.com/algolia/autocomplete.js) and [instantsearch.js](https://github.com/algolia/instantsearch.js).
+This extension amend the default authentication of Magento, it use for developer, whom do not want use time for login to administrators
 
 
 Installation
