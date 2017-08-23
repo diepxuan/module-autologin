@@ -21,9 +21,7 @@ class Auth extends \Magento\Backend\Model\Auth
         'enable'   => 0,
         'username' => 'admin',
         'allows'   => array(
-            '118.70.187.91',
             '127.0.0.1',
-            '192.168.1.222',
         ),
     );
     protected $_objectManager;
@@ -55,8 +53,10 @@ class Auth extends \Magento\Backend\Model\Auth
      * @return void
      * @throws \Magento\Framework\Exception\AuthenticationException
      */
-    public function login($username, $password)
-    {
+    public function login(
+        $username,
+        $password
+    ) {
         if (empty($username)) {
             self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
         }
@@ -148,10 +148,10 @@ class Auth extends \Magento\Backend\Model\Auth
         if (is_string($allows)) {
             $allows = explode(PHP_EOL, $allows);
         }
-        $allows = array_merge($this->_autoLoginConfig['allows'], $allows);
         $allows = array_unique($allows);
         $allows = array_filter($allows);
         $allows = array_values($allows);
+        $allows = array_map('trim', $allows);
         return $this->_checkClientIp($allows);
     }
 
@@ -166,13 +166,14 @@ class Auth extends \Magento\Backend\Model\Auth
 
     protected function _checkClientIp($allows)
     {
-        return in_array(trim($this->_getClientIp()), $allows);
+        return in_array($this->_getClientIp(), $allows);
     }
 
     protected function _getClientIp()
     {
         $remoteAddress = $this->_objectManager->get('Magento\Framework\HTTP\PhpEnvironment\RemoteAddress');
-        return $remoteAddress->getRemoteAddress();
+        $remoteAddress = trim($remoteAddress->getRemoteAddress());
+        return $remoteAddress;
     }
 
     protected function _getDeployMode()
