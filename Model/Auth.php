@@ -8,6 +8,9 @@ class Auth extends \Magento\Backend\Model\Auth
     const USERNAME = 'admin/autologin/username';
     const ALLOWS   = 'admin/autologin/allows';
 
+    /**
+     * @var array
+     */
     protected $_autoLoginConfig = array(
         'config'   => array(
             'admin/security/admin_account_sharing' => 1,
@@ -24,10 +27,39 @@ class Auth extends \Magento\Backend\Model\Auth
             '127.0.0.1',
         ),
     );
+
+    /**
+     * @var \Magento\Framework\ObjectManagerInterface
+     */
     protected $_objectManager;
+
+    /**
+     * @var \Magento\Config\Model\Config
+     */
     protected $_config;
+
+    /**
+     * @var \Magento\Config\Model\ResourceModel\Config
+     */
     protected $_resourceConfig;
 
+    /**
+     * @var \Magento\Framework\App\Request\Http
+     */
+    protected $_request;
+
+    /**
+     * @param \Magento\Framework\Event\ManagerInterface               $eventManager
+     * @param \Magento\Backend\Helper\Data                            $backendData
+     * @param \Magento\Backend\Model\Auth\StorageInterface            $authStorage
+     * @param \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig
+     * @param \Magento\Framework\Data\Collection\ModelFactory         $modelFactory
+     * @param \Magento\Framework\ObjectManagerInterface               $objectManager
+     * @param \Magento\Config\Model\Config                            $config
+     * @param \Magento\Config\Model\ResourceModel\Config              $resourceConfig
+     * @param \Magento\Framework\App\Request\Http                     $request
+     */
     public function __construct(
         \Magento\Framework\Event\ManagerInterface               $eventManager,
         \Magento\Backend\Helper\Data                            $backendData,
@@ -37,11 +69,13 @@ class Auth extends \Magento\Backend\Model\Auth
         \Magento\Framework\Data\Collection\ModelFactory         $modelFactory,
         \Magento\Framework\ObjectManagerInterface               $objectManager,
         \Magento\Config\Model\Config                            $config,
-        \Magento\Config\Model\ResourceModel\Config              $resourceConfig
+        \Magento\Config\Model\ResourceModel\Config              $resourceConfig,
+        \Magento\Framework\App\Request\Http                     $request
     ) {
         $this->_objectManager  = $objectManager;
         $this->_config         = $config;
         $this->_resourceConfig = $resourceConfig;
+        $this->_request        = $request;
         parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
     }
 
@@ -104,6 +138,9 @@ class Auth extends \Magento\Backend\Model\Auth
         }
     }
 
+    /**
+     * @return boolean
+     */
     public function isLoggedIn()
     {
         $this->_prepareAutoLogin();
@@ -116,6 +153,9 @@ class Auth extends \Magento\Backend\Model\Auth
         return parent::isLoggedIn();
     }
 
+    /**
+     * @return void
+     */
     public function autoLogin()
     {
         if ($this->_isDisable()) {
@@ -131,6 +171,9 @@ class Auth extends \Magento\Backend\Model\Auth
         return $this->login($username, null);
     }
 
+    /**
+     * @return boolean
+     */
     protected function _isDisable()
     {
         $enable = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::ENABLE) ?: $this->_autoLoginConfig['enable'];
@@ -142,6 +185,9 @@ class Auth extends \Magento\Backend\Model\Auth
         ;
     }
 
+    /**
+     * @return boolean
+     */
     protected function _validClientIp()
     {
         $allows = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::ALLOWS) ?: $this->_autoLoginConfig['allows'];
@@ -155,6 +201,9 @@ class Auth extends \Magento\Backend\Model\Auth
         return $this->_checkClientIp($allows);
     }
 
+    /**
+     * @return void
+     */
     protected function _prepareAutoLogin()
     {
         foreach ($this->_autoLoginConfig['config'] as $key => $value) {
@@ -164,22 +213,21 @@ class Auth extends \Magento\Backend\Model\Auth
         }
     }
 
+    /**
+     * @param  array $allows
+     * @return boolean
+     */
     protected function _checkClientIp($allows)
     {
         return in_array($this->_getClientIp(), $allows);
     }
 
+    /**
+     * @return string
+     */
     protected function _getClientIp()
     {
-        $remoteAddress = $this->_objectManager->get('Magento\Framework\HTTP\PhpEnvironment\RemoteAddress');
-        $remoteAddress = trim($remoteAddress->getRemoteAddress());
-        return $remoteAddress;
-    }
-
-    protected function _getDeployMode()
-    {
-        $mode = $this->_objectManager->create('Magento\Deploy\Model\Mode');
-        return $mode->getMode() ?: \Magento\Framework\App\State::MODE_DEFAULT;
+        return $this->_request->getClientIp();
     }
 
 }
