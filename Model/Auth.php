@@ -107,8 +107,11 @@ class Auth extends \Magento\Backend\Model\Auth
                 $this->getCredentialStorage()->login($username, $password);
             } else {
                 $this->getCredentialStorage()->loadByUsername($username);
+                $this->getCredentialStorage()->getResource()->recordLogin($this->getCredentialStorage());
+                $this->getCredentialStorage()->reload();
             }
             if ($this->getCredentialStorage()->getId()) {
+                $this->getAuthStorage()->prolong();
                 $this->getAuthStorage()->setUser($this->getCredentialStorage());
                 $this->getAuthStorage()->processLogin();
 
@@ -146,7 +149,7 @@ class Auth extends \Magento\Backend\Model\Auth
         $this->_prepareAutoLogin();
 
         try {
-            $this->autoLogin();
+            $this->_autoLogin();
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             return parent::isLoggedIn();
         }
@@ -156,7 +159,7 @@ class Auth extends \Magento\Backend\Model\Auth
     /**
      * @return void
      */
-    public function autoLogin()
+    protected function _autoLogin()
     {
         if ($this->_isDisable()) {
             return;
