@@ -13,9 +13,6 @@ Autologin
 
 This extension amend the default authentication of Magento, it use for developer, whom do not want use time for login to administrators
 
-- ```1.0.3``` fix detect client ip.
-- ```1.0.4``` fix session has been expired.
-
 
 Installation
 ------------
