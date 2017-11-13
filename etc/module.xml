@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2017 Dxvn, Inc. All rights reserved.
+ * @author  Tran Ngoc Duc <caothu91@gmail.com>
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Diepxuan_Autologin" setup_version="1.0.4">
+    <module name="Diepxuan_Autologin" setup_version="1.0.5">
         <sequence>
             <module name="Magento_Backend" />
         </sequence>
