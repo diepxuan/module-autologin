@@ -20,6 +20,7 @@ class Auth extends \Magento\Backend\Model\Auth
 
             'web/seo/use_rewrites'                 => 1,
             'web/session/use_frontend_sid'         => 0,
+            'web/url/redirect_to_base'             => 1,
         ),
         'enable'   => 0,
         'username' => 'admin',
