@@ -146,6 +146,10 @@ class Authentication
      */
     public function beforeDispatch(\Magento\Framework\App\ActionInterface $proceed)
     {
+        if (!$this->getAuth()->isLoggedIn()) {
+            $this->getLogger()->info('Autologin/Authentication::failed');
+            return;
+        }
         // $loginUrl = $this->customerUrl->getLoginUrl();
 
         // if (!$this->customerSession->authenticate($loginUrl)) {
@@ -157,11 +161,11 @@ class Authentication
         //         \Magento\Framework\Interception\InterceptorInterface $proceed,
         //         \Magento\Framework\App\RequestInterface              $request
         //     ) {
-        if ($this->getAuth()->isLoggedIn()) {
-            // $proceed->getActionFlag()->set('', $proceed::FLAG_NO_DISPATCH, false);
-            $this->getLogger()->info('Autologin/Authentication::isLoggedIn');
-            return;
-        }
+        // if ($this->getAuth()->isLoggedIn()) {
+        //     // $proceed->getActionFlag()->set('', $proceed::FLAG_NO_DISPATCH, false);
+        //     $this->getLogger()->info('Autologin/Authentication::isLoggedIn');
+        //     return;
+        // }
         // $proceed->getActionFlag()->set('', $proceed::FLAG_NO_DISPATCH, true);
 
         // $this->_request = $request;
