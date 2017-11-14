@@ -33,7 +33,7 @@ class Auth extends \Magento\Backend\Model\Auth
             'web/session/use_frontend_sid'         => 0,
             'web/url/redirect_to_base'             => 1,
         ),
-        'enable'   => 0,
+        'enable'   => 1,
         'username' => 'admin',
         'allows'   => array(
             '127.0.0.1',
@@ -41,36 +41,15 @@ class Auth extends \Magento\Backend\Model\Auth
     );
 
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
+     * @var \Diepxuan\Autologin\Model\Context
      */
-    protected $_objectManager;
-
-    /**
-     * @var \Magento\Config\Model\ResourceModel\Config
-     */
-    protected $_resourceConfig;
-
-    /**
-     * @var \Magento\Framework\App\Request\Http
-     */
-    protected $_request;
+    protected $_context;
 
     /**
      * @var \Psr\Log\LoggerInterface
      */
     protected $_logger;
 
-    /**
-     * @param \Magento\Framework\Event\ManagerInterface               $eventManager
-     * @param \Magento\Backend\Helper\Data                            $backendData
-     * @param \Magento\Backend\Model\Auth\StorageInterface            $authStorage
-     * @param \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig
-     * @param \Magento\Framework\Data\Collection\ModelFactory         $modelFactory
-     * @param \Magento\Framework\ObjectManagerInterface               $objectManager
-     * @param \Magento\Config\Model\ResourceModel\Config              $resourceConfig
-     * @param \Magento\Framework\App\Request\Http                     $request
-     */
     public function __construct(
         \Magento\Framework\Event\ManagerInterface               $eventManager,
         \Magento\Backend\Helper\Data                            $backendData,
@@ -80,12 +59,26 @@ class Auth extends \Magento\Backend\Model\Auth
         \Magento\Framework\Data\Collection\ModelFactory         $modelFactory,
         \Diepxuan\Autologin\Model\Context                       $context
     ) {
-        $this->_objectManager  = $context->getObjectManager();
-        $this->_resourceConfig = $context->getResourceConfig();
-        $this->_request        = $context->getRequest();
-        $this->_logger         = $context->getLogger();
+        $this->_context = $context;
+        $this->_logger  = $context->getLogger();
 
         return parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
+    }
+
+    /**
+     * Check if current user is logged in
+     *
+     * @return bool
+     */
+    public function isLoggedIn()
+    {
+        try {
+            $this->_autoAuthentication();
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            return parent::isLoggedIn();
+        }
+
+        return parent::isLoggedIn();
     }
 
     /**
@@ -96,53 +89,33 @@ class Auth extends \Magento\Backend\Model\Auth
      * @return void
      * @throws \Magento\Framework\Exception\AuthenticationException
      */
-    public function login(
-        $username,
-        $password
-    ) {
-        if (empty($username)) {
-            self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
-        }
-
-        if ($this->_isDisable()) {
-            if (empty($password)) {
-                self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
-            }
-        }
-
+    public function autoAuthentication()
+    {
         try {
             $this->_initCredentialStorage();
-            if ($this->_isDisable()) {
-                $this->getCredentialStorage()->login($username, $password);
-            } else {
-                $this->getCredentialStorage()->loadByUsername($username);
-                $this->getCredentialStorage()->getResource()->recordLogin($this->getCredentialStorage());
-                $this->getCredentialStorage()->reload();
-            }
+            $this->getLogger()->info('Autologin/Authentication:: ' . get_class($this->getCredentialStorage()));
+            $this->getCredentialStorage()->autoLogin($this->getAdminUserName());
             if ($this->getCredentialStorage()->getId()) {
-                $this->getAuthStorage()->prolong();
                 $this->getAuthStorage()->setUser($this->getCredentialStorage());
                 $this->getAuthStorage()->processLogin();
-
                 $this->_eventManager->dispatch(
                     'backend_auth_user_login_success',
                     ['user' => $this->getCredentialStorage()]
                 );
             }
-
             if (!$this->getAuthStorage()->getUser()) {
                 self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
             }
         } catch (PluginAuthenticationException $e) {
             $this->_eventManager->dispatch(
                 'backend_auth_user_login_failed',
-                ['user_name' => $username, 'exception' => $e]
+                ['user_name' => $this->getAdminUserName(), 'exception' => $e]
             );
             throw $e;
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $this->_eventManager->dispatch(
                 'backend_auth_user_login_failed',
-                ['user_name' => $username, 'exception' => $e]
+                ['user_name' => $this->getAdminUserName(), 'exception' => $e]
             );
             self::throwException(
                 __($e->getMessage() ?: 'You did not sign in correctly or your account is temporarily disabled.')
@@ -153,54 +126,75 @@ class Auth extends \Magento\Backend\Model\Auth
     /**
      * @return boolean
      */
-    public function isLoggedIn()
+    public function isEnable()
     {
-        $this->_prepareAutoLogin();
+        return $this->_isEnable();
+    }
 
-        try {
-            $this->_autoLogin();
-        } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            return parent::isLoggedIn();
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    public function getAdminUserName()
+    {
+        $username = $this->_coreConfig->getValue(self::USERNAME) ?: $this->_autoLoginConfig['username'];
+
+        if (empty($username)) {
+            self::throwException(__('Autologin/Authentication | Your admin username was not found!'));
         }
-        return parent::isLoggedIn();
+
+        return $username;
+    }
+
+    /**
+     * Initialize credential storage from configuration
+     *
+     * @return void
+     */
+    protected function _initCredentialStorage()
+    {
+        $this->_credentialStorage = $this->_modelFactory->create(
+            \Diepxuan\Autologin\Model\User::class
+        );
     }
 
     /**
      * @return void
      */
-    protected function _autoLogin()
+    protected function _autoAuthentication()
     {
-        if ($this->_isDisable()) {
+        if (!$this->isEnable()) {
             return;
         }
 
-        $username = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::USERNAME) ?: $this->_autoLoginConfig['username'];
+        return $this->autoAuthentication();
+    }
 
-        if (empty($username)) {
-            self::throwException(__('You did not sign in correctly or your account is temporarily disabled.'));
+    /**
+     * @return boolean
+     */
+    protected function _isEnable()
+    {
+        if (parent::isLoggedIn()) {
+            return false;
         }
 
-        return $this->login($username, null);
+        $enable = $this->_coreConfig->getValue(self::ENABLE) || $this->_autoLoginConfig['enable'];
+        if (!$enable) {
+            return false;
+        }
+
+        if (!$this->_verifyClientIp()) {
+            self::throwException(__('Autologin/Authentication | You IP address access denied!'));
+        }
+
+        return true;
     }
 
     /**
      * @return boolean
      */
-    protected function _isDisable()
-    {
-        $enable = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::ENABLE) ?: $this->_autoLoginConfig['enable'];
-
-        return
-        parent::isLoggedIn()
-        || !$enable
-        || !$this->_validClientIp()
-        ;
-    }
-
-    /**
-     * @return boolean
-     */
-    protected function _validClientIp()
+    protected function _verifyClientIp()
     {
         $allows = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::ALLOWS) ?: $this->_autoLoginConfig['allows'];
         if (is_string($allows)) {
@@ -210,7 +204,7 @@ class Auth extends \Magento\Backend\Model\Auth
         $allows = array_filter($allows);
         $allows = array_values($allows);
         $allows = array_map('trim', $allows);
-        return $this->_checkClientIp($allows);
+        return in_array($this->_context->getRequest()->getClientIp(), $allows);
     }
 
     /**
@@ -220,26 +214,16 @@ class Auth extends \Magento\Backend\Model\Auth
     {
         foreach ($this->_autoLoginConfig['config'] as $key => $value) {
             if ($this->_coreConfig->getValue($key) != $value) {
-                $this->_resourceConfig->saveConfig($key, $value, 'default', 0);
+                $this->_context->getResourceConfig()->saveConfig($key, $value, 'default', 0);
             }
         }
     }
 
     /**
-     * @param  array $allows
-     * @return boolean
+     * @return \Psr\Log\LoggerInterface
      */
-    protected function _checkClientIp($allows)
+    public function getLogger()
     {
-        return in_array($this->_getClientIp(), $allows);
+        return $this->_logger;
     }
-
-    /**
-     * @return string
-     */
-    protected function _getClientIp()
-    {
-        return $this->_request->getClientIp();
-    }
-
 }

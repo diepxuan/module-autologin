@@ -26,9 +26,9 @@ use Magento\Framework\Exception\AuthenticationException;
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @api
  * @since 100.0.2
- * @see   \Magento\Backend\Model\User
+ * @see   \Magento\User\Model\User
  */
-class User extends \Magento\Backend\Model\User
+class User extends \Magento\User\Model\User
 {
 
     /**
@@ -37,8 +37,10 @@ class User extends \Magento\Backend\Model\User
      * @param string $username
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
+     *
+     * @see \Magento\User\Model\User::authenticate($username, $password)
      */
-    public function authenticate($username)
+    public function autoAuthenticate($username)
     {
         $config = $this->_config->isSetFlag('admin/security/use_case_sensitive_login');
         $result = false;
@@ -51,7 +53,7 @@ class User extends \Magento\Backend\Model\User
             $this->loadByUsername($username);
             $sensitive = $config ? $username == $this->getUsername() : true;
             if ($sensitive && $this->getId()) {
-                $result = $this->verifyIdentity();
+                $result = $this->autoVerifyIdentity();
             }
 
             $this->_eventManager->dispatch(
@@ -74,8 +76,10 @@ class User extends \Magento\Backend\Model\User
      *
      * @return bool
      * @throws \Magento\Framework\Exception\AuthenticationException
+     *
+     * @see \Magento\User\Model\User::verifyIdentity($username, $password)
      */
-    public function verifyIdentity()
+    public function autoVerifyIdentity()
     {
         if ($this->getIsActive() != '1') {
             throw new AuthenticationException(
@@ -92,14 +96,13 @@ class User extends \Magento\Backend\Model\User
      * Login user
      *
      * @param   string $username
-     * @param   string $password
      * @return  $this
+     *
+     * @see \Magento\User\Model\User::login($username, $password)
      */
-    public function login(
-        $username,
-        $password
-    ) {
-        if ($this->authenticate($username)) {
+    public function autoLogin($username)
+    {
+        if ($this->autoAuthenticate($username)) {
             $this->getResource()->recordLogin($this);
         }
         return $this;
