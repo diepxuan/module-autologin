@@ -81,7 +81,8 @@ class Auth extends \Magento\Backend\Model\Auth
         $this->_config         = $config;
         $this->_resourceConfig = $resourceConfig;
         $this->_request        = $request;
-        parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
+
+        return parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
     }
 
     /**
