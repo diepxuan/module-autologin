@@ -56,6 +56,11 @@ class Auth extends \Magento\Backend\Model\Auth
     protected $_request;
 
     /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $_logger;
+
+    /**
      * @param \Magento\Framework\Event\ManagerInterface               $eventManager
      * @param \Magento\Backend\Helper\Data                            $backendData
      * @param \Magento\Backend\Model\Auth\StorageInterface            $authStorage
@@ -73,13 +78,12 @@ class Auth extends \Magento\Backend\Model\Auth
         \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage,
         \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig,
         \Magento\Framework\Data\Collection\ModelFactory         $modelFactory,
-        \Magento\Framework\ObjectManagerInterface               $objectManager,
-        \Magento\Config\Model\ResourceModel\Config              $resourceConfig,
-        \Magento\Framework\App\Request\Http                     $request
+        \Diepxuan\Autologin\Model\Context                       $context
     ) {
-        $this->_objectManager  = $objectManager;
-        $this->_resourceConfig = $resourceConfig;
-        $this->_request        = $request;
+        $this->_objectManager  = $context->getObjectManager();
+        $this->_resourceConfig = $context->getResourceConfig();
+        $this->_request        = $context->getRequest();
+        $this->_logger         = $context->getLogger();
 
         return parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
     }

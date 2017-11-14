@@ -131,35 +131,11 @@ class Authentication
     protected $_backendAppList;
 
     public function __construct(
-        \Magento\Framework\Event\ManagerInterface                  $eventManager,
-        \Magento\Backend\Helper\Data                               $backendData,
-        \Magento\Backend\Model\Auth\StorageInterface               $authStorage,
-        \Magento\Framework\App\Config\ScopeConfigInterface         $coreConfig,
-        \Magento\Framework\Data\Collection\ModelFactory            $modelFactory,
-        \Magento\Framework\ObjectManagerInterface                  $objectManager,
-        \Magento\Config\Model\Config                               $config,
-        \Magento\Config\Model\ResourceModel\Config                 $resourceConfig,
-        \Psr\Log\LoggerInterface                                   $logger,
-        \Diepxuan\Autologin\Model\Auth                             $auth,
-        \Magento\Backend\Model\UrlInterface                        $backendUrl,
-        \Magento\Framework\Controller\Result\RedirectFactory       $resultRedirectFactory,
-        \Diepxuan\Autologin\Model\Config\Source\AuthenticationUser $authenticationUser,
-        \Magento\Backend\App\BackendAppList                        $backendAppList
+        \Psr\Log\LoggerInterface       $logger,
+        \Diepxuan\Autologin\Model\Auth $auth
     ) {
-        $this->_eventManager          = $eventManager;
-        $this->_backendData           = $backendData;
-        $this->_authStorage           = $authStorage;
-        $this->_coreConfig            = $coreConfig;
-        $this->_modelFactory          = $modelFactory;
-        $this->_objectManager         = $objectManager;
-        $this->_config                = $config;
-        $this->_resourceConfig        = $resourceConfig;
-        $this->_logger                = $logger;
-        $this->_auth                  = $auth;
-        $this->_backendUrl            = $backendUrl;
-        $this->_resultRedirectFactory = $resultRedirectFactory;
-        $this->_authenticationUser    = $authenticationUser;
-        $this->_backendAppList        = $backendAppList;
+        $this->_logger = $logger;
+        $this->_auth   = $auth;
     }
 
     /**
