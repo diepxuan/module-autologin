@@ -26,6 +26,7 @@ use Magento\Framework\Exception\AuthenticationException;
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @api
  * @since 100.0.2
+ * @see   \Magento\Backend\Model\User
  */
 class User extends \Magento\Backend\Model\User
 {

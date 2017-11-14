@@ -6,5 +6,7 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <preference for="Magento\Backend\Model\Auth" type="Diepxuan\Autologin\Model\Auth" />
+    <type name="Magento\Backend\App\AbstractAction">
+        <plugin name="Diepxuan_Autologin" type="Diepxuan\Autologin\Plugin\Authentication" />
+    </type>
 </config>

@@ -6,6 +6,13 @@
 
 namespace Diepxuan\Autologin\Model;
 
+/**
+ * Backend Auth model
+ *
+ * @api
+ * @since 100.0.2
+ * @see   \Magento\Backend\Model\Auth
+ */
 class Auth extends \Magento\Backend\Model\Auth
 {
     const ENABLE   = 'admin/autologin/enable';
@@ -39,11 +46,6 @@ class Auth extends \Magento\Backend\Model\Auth
     protected $_objectManager;
 
     /**
-     * @var \Magento\Config\Model\Config
-     */
-    protected $_config;
-
-    /**
      * @var \Magento\Config\Model\ResourceModel\Config
      */
     protected $_resourceConfig;
@@ -61,7 +63,6 @@ class Auth extends \Magento\Backend\Model\Auth
      * @param \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig
      * @param \Magento\Framework\Data\Collection\ModelFactory         $modelFactory
      * @param \Magento\Framework\ObjectManagerInterface               $objectManager
-     * @param \Magento\Config\Model\Config                            $config
      * @param \Magento\Config\Model\ResourceModel\Config              $resourceConfig
      * @param \Magento\Framework\App\Request\Http                     $request
      */
@@ -73,12 +74,10 @@ class Auth extends \Magento\Backend\Model\Auth
         \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig,
         \Magento\Framework\Data\Collection\ModelFactory         $modelFactory,
         \Magento\Framework\ObjectManagerInterface               $objectManager,
-        \Magento\Config\Model\Config                            $config,
         \Magento\Config\Model\ResourceModel\Config              $resourceConfig,
         \Magento\Framework\App\Request\Http                     $request
     ) {
         $this->_objectManager  = $objectManager;
-        $this->_config         = $config;
         $this->_resourceConfig = $resourceConfig;
         $this->_request        = $request;
 

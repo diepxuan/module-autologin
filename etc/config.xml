@@ -9,7 +9,7 @@
     <default>
         <admin>
             <autologin>
-                <enable>0</enable>
+                <enable>1</enable>
                 <username>admin</username>
                 <allows>127.0.0.1</allows>
             </autologin>
