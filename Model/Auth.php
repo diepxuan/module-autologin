@@ -6,14 +6,16 @@
 
 namespace Diepxuan\Autologin\Model;
 
+use Magento\Framework\Exception\AuthenticationException;
+use Magento\Framework\Exception\Plugin\AuthenticationException as PluginAuthenticationException;
+use Magento\Framework\Phrase;
+
 /**
  * Backend Auth model
  *
- * @api
- * @since 100.0.2
  * @see   \Magento\Backend\Model\Auth
  */
-class Auth extends \Magento\Backend\Model\Auth
+class Auth
 {
     const ENABLE   = 'admin/autologin/enable';
     const USERNAME = 'admin/autologin/username';
@@ -24,14 +26,16 @@ class Auth extends \Magento\Backend\Model\Auth
      */
     protected $_autoLoginConfig = array(
         'config'   => array(
-            'admin/security/admin_account_sharing' => 1,
-            'admin/security/use_form_key'          => 0,
+            'admin/security/admin_account_sharing'    => 1,
+            'admin/security/use_case_sensitive_login' => 1,
+            'admin/security/use_form_key'             => 0,
+            'admin/captcha/enable'                    => 0,
 
-            'customer/startup/redirect_dashboard'  => 0,
+            'customer/startup/redirect_dashboard'     => 0,
 
-            'web/seo/use_rewrites'                 => 1,
-            'web/session/use_frontend_sid'         => 0,
-            'web/url/redirect_to_base'             => 1,
+            'web/seo/use_rewrites'                    => 1,
+            'web/session/use_frontend_sid'            => 0,
+            'web/url/redirect_to_base'                => 1,
         ),
         'enable'   => 1,
         'username' => 'admin',
@@ -50,19 +54,56 @@ class Auth extends \Magento\Backend\Model\Auth
      */
     protected $_logger;
 
-    public function __construct(
-        \Magento\Framework\Event\ManagerInterface               $eventManager,
-        \Magento\Backend\Helper\Data                            $backendData,
-        \Magento\Backend\Model\Auth\StorageInterface            $authStorage,
-        \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage,
-        \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig,
-        \Magento\Framework\Data\Collection\ModelFactory         $modelFactory,
-        \Diepxuan\Autologin\Model\Context                       $context
-    ) {
-        $this->_context = $context;
-        $this->_logger  = $context->getLogger();
+    /**
+     * @var \Magento\Framework\App\Request\Http
+     */
+    protected $_request;
 
-        return parent::__construct($eventManager, $backendData, $authStorage, $credentialStorage, $coreConfig, $modelFactory);
+    /**
+     * Core event manager proxy
+     *
+     * @var \Magento\Framework\Event\ManagerInterface
+     */
+    protected $_eventManager;
+
+    /**
+     * Backend data
+     *
+     * @var \Magento\Backend\Helper\Data
+     */
+    protected $_backendData;
+
+    /**
+     * @var \Magento\Backend\Model\Auth\StorageInterface
+     */
+    protected $_authStorage;
+
+    /**
+     * @var \Magento\Backend\Model\Auth\Credential\StorageInterface
+     */
+    protected $_credentialStorage;
+
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    protected $_coreConfig;
+
+    /**
+     * @var \Magento\Framework\Data\Collection\ModelFactory
+     */
+    protected $_modelFactory;
+
+    public function __construct(
+        \Diepxuan\Autologin\Model\Context $context
+    ) {
+        $this->_context      = $context;
+        $this->_logger       = $context->getLogger();
+        $this->_request      = $context->getRequest();
+        $this->_eventManager = $context->getEventManager();
+        $this->_backendData  = $context->getBackendData();
+        $this->_authStorage  = $context->getAuthStorage();
+        $this->_coreConfig   = $context->getCoreConfig();
+        $this->_modelFactory = $context->getModelFactory();
     }
 
     /**
@@ -75,10 +116,10 @@ class Auth extends \Magento\Backend\Model\Auth
         try {
             $this->_autoAuthentication();
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            return parent::isLoggedIn();
+            return $this->getAuthStorage()->isLoggedIn();
         }
 
-        return parent::isLoggedIn();
+        return $this->getAuthStorage()->isLoggedIn();
     }
 
     /**
@@ -93,11 +134,11 @@ class Auth extends \Magento\Backend\Model\Auth
     {
         try {
             $this->_initCredentialStorage();
-            $this->getLogger()->info('Autologin/Authentication:: ' . get_class($this->getCredentialStorage()));
             $this->getCredentialStorage()->autoLogin($this->getAdminUserName());
             if ($this->getCredentialStorage()->getId()) {
                 $this->getAuthStorage()->setUser($this->getCredentialStorage());
                 $this->getAuthStorage()->processLogin();
+
                 $this->_eventManager->dispatch(
                     'backend_auth_user_login_success',
                     ['user' => $this->getCredentialStorage()]
@@ -147,6 +188,55 @@ class Auth extends \Magento\Backend\Model\Auth
     }
 
     /**
+     * Perform logout process
+     *
+     * @return void
+     */
+    public function logout()
+    {
+        $this->getAuthStorage()->processLogout();
+    }
+
+    /**
+     * Throws specific Backend Authentication \Exception
+     *
+     * @param \Magento\Framework\Phrase $msg
+     * @return void
+     * @throws \Magento\Framework\Exception\AuthenticationException
+     * @static
+     */
+    public static function throwException(Phrase $msg = null)
+    {
+        if ($msg === null) {
+            $msg = __('Authentication error occurred.');
+        }
+        throw new AuthenticationException($msg);
+    }
+
+    /**
+     * Return auth storage.
+     * If auth storage was not defined outside - returns default object of auth storage
+     *
+     * @return \Magento\Backend\Model\Auth\StorageInterface
+     * @codeCoverageIgnore
+     */
+    public function getAuthStorage()
+    {
+        return $this->_authStorage;
+    }
+
+    /**
+     * Return current (successfully authenticated) user,
+     * an instance of \Magento\Backend\Model\Auth\Credential\StorageInterface
+     *
+     * @return \Magento\Backend\Model\Auth\Credential\StorageInterface
+     */
+    public function getUser()
+    {
+        return $this->getAuthStorage()->getUser();
+    }
+
+    /**
      * Initialize credential storage from configuration
      *
      * @return void
@@ -156,6 +246,17 @@ class Auth extends \Magento\Backend\Model\Auth
         $this->_credentialStorage = $this->_modelFactory->create(
             \Diepxuan\Autologin\Model\User::class
         );
+    }
+
+    /**
+     * Return credential storage object
+     *
+     * @return null|\Magento\Backend\Model\Auth\Credential\StorageInterface
+     * @codeCoverageIgnore
+     */
+    public function getCredentialStorage()
+    {
+        return $this->_credentialStorage;
     }
 
     /**
@@ -175,7 +276,7 @@ class Auth extends \Magento\Backend\Model\Auth
      */
     protected function _isEnable()
     {
-        if (parent::isLoggedIn()) {
+        if ($this->getAuthStorage()->isLoggedIn()) {
             return false;
         }
 
@@ -226,4 +327,5 @@ class Auth extends \Magento\Backend\Model\Auth
     {
         return $this->_logger;
     }
+
 }

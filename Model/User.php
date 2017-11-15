@@ -32,6 +32,13 @@ class User extends \Magento\User\Model\User
 {
 
     /**
+     * Core event manager proxy
+     *
+     * @var \Magento\Framework\Event\ManagerInterface
+     */
+    protected $_eventManager;
+
+    /**
      * Authenticate user name and password and save loaded record
      *
      * @param string $username
@@ -46,17 +53,18 @@ class User extends \Magento\User\Model\User
         $result = false;
 
         try {
-            $this->_eventManager->dispatch(
+            $this->getEventManager()->dispatch(
                 'admin_user_authenticate_before',
                 ['username' => $username, 'user' => $this]
             );
             $this->loadByUsername($username);
+
             $sensitive = $config ? $username == $this->getUsername() : true;
             if ($sensitive && $this->getId()) {
                 $result = $this->autoVerifyIdentity();
             }
 
-            $this->_eventManager->dispatch(
+            $this->getEventManager()->dispatch(
                 'admin_user_authenticate_after',
                 ['username' => $username, 'password' => $this->getPassword(), 'user' => $this, 'result' => $result]
             );
@@ -106,5 +114,31 @@ class User extends \Magento\User\Model\User
             $this->getResource()->recordLogin($this);
         }
         return $this;
+    }
+
+    /**
+     * Get logger instance
+     *
+     * @return \Psr\Log\LoggerInterface
+     */
+    public function getLogger()
+    {
+        if (!$this->_logger instanceof \Psr\Log\LoggerInterface) {
+            $this->_logger = \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class);
+        }
+        return $this->_logger;
+    }
+
+    /**
+     * Core event manager proxy
+     *
+     * @return \Magento\Framework\Event\ManagerInterface
+     */
+    public function getEventManager()
+    {
+        if (!$this->_eventManager instanceof \Magento\Framework\Event\ManagerInterface) {
+            $this->_eventManager = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Event\ManagerInterface::class);
+        }
+        return $this->_eventManager;
     }
 }

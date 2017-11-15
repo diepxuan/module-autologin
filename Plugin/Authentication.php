@@ -20,30 +20,37 @@ class Authentication
     protected $_auth;
 
     /**
-     * @param \Psr\Log\LoggerInterface       $logger
-     * @param \Diepxuan\Autologin\Model\Auth $auth
+     * @var \Magento\Framework\App\Request\Http
+     */
+    protected $_request;
+
+    /**
+     * @param \Psr\Log\LoggerInterface            $logger
+     * @param \Diepxuan\Autologin\Model\Auth      $auth
+     * @param \Magento\Framework\App\Request\Http $request
      */
     public function __construct(
-        \Psr\Log\LoggerInterface       $logger,
-        \Diepxuan\Autologin\Model\Auth $auth
+        \Psr\Log\LoggerInterface            $logger,
+        \Diepxuan\Autologin\Model\Auth      $auth,
+        \Magento\Framework\App\Request\Http $request
     ) {
-        $this->_logger = $logger;
-        $this->_auth   = $auth;
+        $this->_logger  = $logger;
+        $this->_auth    = $auth;
+        $this->_request = $request;
     }
 
     /**
      * Authenticate user
+     * @param  \Magento\Backend\Model\Auth $auth
      *
-     * @param \Magento\Framework\App\ActionInterface $proceed
      * @return void
      */
-    public function beforeDispatch(\Magento\Framework\App\ActionInterface $proceed)
-    {
+    public function beforeIsLoggedIn(
+        \Magento\Backend\Model\Auth $auth
+    ) {
         if (!$this->getAuth()->isLoggedIn()) {
-            $this->getLogger()->info('Autologin/Authentication::failed');
             return;
         }
-        $this->getLogger()->info('Autologin/Authentication::successful');
     }
 
     /**
@@ -55,11 +62,19 @@ class Authentication
     }
 
     /**
-     * @return \Magento\Backend\Model\Auth
+     * @return \Diepxuan\Autologin\Model\Auth
      */
     public function getAuth()
     {
         return $this->_auth;
+    }
+
+    /**
+     * @return \Magento\Framework\App\Request\Http
+     */
+    public function getRequest()
+    {
+        return $this->_request;
     }
 
 }
