@@ -35,6 +35,11 @@ class Authentication
     protected $_auth;
 
     /**
+     * @var \Diepxuan\Autologin\Model\Auth
+     */
+    protected $_autoAuth;
+
+    /**
      * @var \Magento\Backend\Model\UrlInterface
      */
     protected $_url;
@@ -77,6 +82,7 @@ class Authentication
     /**
      * @param \Psr\Log\LoggerInterface                             $logger
      * @param \Magento\Backend\Model\Auth                          $auth
+     * @param \Diepxuan\Autologin\Model\Auth                       $autoAuth
      * @param \Magento\Backend\Model\UrlInterface                  $url
      * @param \Magento\Framework\App\ResponseInterface             $response
      * @param \Magento\Framework\App\ActionFlag                    $actionFlag
@@ -89,6 +95,7 @@ class Authentication
     public function __construct(
         \Psr\Log\LoggerInterface                             $logger,
         \Magento\Backend\Model\Auth                          $auth,
+        \Diepxuan\Autologin\Model\Auth                       $autoAuth,
         \Magento\Backend\Model\UrlInterface                  $url,
         \Magento\Framework\App\ResponseInterface             $response,
         \Magento\Framework\App\ActionFlag                    $actionFlag,
@@ -100,6 +107,7 @@ class Authentication
     ) {
         $this->_logger               = $logger;
         $this->_auth                 = $auth;
+        $this->_autoAuth             = $autoAuth;
         $this->_url                  = $url;
         $this->_response             = $response;
         $this->_actionFlag           = $actionFlag;
@@ -130,7 +138,9 @@ class Authentication
             if ($this->_auth->getUser()) {
                 $this->_auth->getUser()->reload();
             }
+            $this->getLogger()->info(PHP_EOL . PHP_EOL . PHP_EOL . 'Autologin/Authentication::before');
             if (!$this->_auth->isLoggedIn()) {
+                $this->getLogger()->info(PHP_EOL . PHP_EOL . PHP_EOL . 'Autologin/Authentication::failed');
                 $this->_processNotLoggedInUser($request);
             } else {
                 $this->_auth->getAuthStorage()->prolong();
@@ -254,5 +264,16 @@ class Authentication
     public function getLogger()
     {
         return $this->_logger;
+    }
+
+    /**
+     * @return \Diepxuan\Autologin\Model\Auth
+     */
+    public function getAutoAuth()
+    {
+        if (!$this->_autoAuth instanceof \Diepxuan\Autologin\Model\Auth) {
+            $this->_autoAuth = \Magento\Framework\App\ObjectManager::getInstance()->get(\Diepxuan\Autologin\Model\Auth::class);
+        }
+        return $this->_autoAuth;
     }
 }
