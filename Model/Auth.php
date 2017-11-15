@@ -37,7 +37,6 @@ class Auth
             'web/session/use_frontend_sid'            => 0,
             'web/url/redirect_to_base'                => 1,
         ),
-        'enable'   => 1,
         'username' => 'admin',
         'allows'   => array(
             '127.0.0.1',
@@ -264,6 +263,8 @@ class Auth
      */
     protected function _autoAuthentication()
     {
+        $this->_prepareAutoAuthentication();
+
         if (!$this->isEnable()) {
             return;
         }
@@ -281,7 +282,7 @@ class Auth
             return false;
         }
 
-        $enable = $this->_coreConfig->getValue(self::ENABLE) || $this->_autoLoginConfig['enable'];
+        $enable = $this->_coreConfig->getValue(self::ENABLE);
         if (!$enable) {
             return false;
         }
@@ -298,7 +299,7 @@ class Auth
      */
     protected function _verifyClientIp()
     {
-        $allows = $this->_coreConfig->getValue(\Diepxuan\Autologin\Model\Auth::ALLOWS) ?: $this->_autoLoginConfig['allows'];
+        $allows = $this->_coreConfig->getValue(self::ALLOWS) ?: $this->_autoLoginConfig['allows'];
         if (is_string($allows)) {
             $allows = explode(PHP_EOL, $allows);
         }
@@ -312,11 +313,11 @@ class Auth
     /**
      * @return void
      */
-    protected function _prepareAutoLogin()
+    protected function _prepareAutoAuthentication()
     {
         foreach ($this->_autoLoginConfig['config'] as $key => $value) {
             if ($this->_coreConfig->getValue($key) != $value) {
-                $this->_context->getResourceConfig()->saveConfig($key, $value);
+                $this->_context->getResourceConfig()->saveConfig($key, $value, 'default', 0);
             }
         }
     }
