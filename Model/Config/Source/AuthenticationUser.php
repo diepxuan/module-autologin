@@ -14,13 +14,21 @@ class AuthenticationUser implements \Magento\Framework\Option\ArrayInterface
     private $_userCollection;
 
     /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $_logger;
+
+    /**
      * @var array
      */
     private $users;
 
-    public function __construct(\Magento\User\Model\ResourceModel\User\Collection $userCollection)
-    {
+    public function __construct(
+        \Magento\User\Model\ResourceModel\User\Collection $userCollection,
+        \Psr\Log\LoggerInterface                          $logger
+    ) {
         $this->_userCollection = $userCollection;
+        $this->_logger         = $logger;
         $this->users           = [];
     }
 
@@ -43,6 +51,8 @@ class AuthenticationUser implements \Magento\Framework\Option\ArrayInterface
         foreach ($this->getCollection() as $user) {
             $this->users[$user->getUsername()] = $user->getName() . ' (' . $user->getUsername() . ')';
         }
+
+        return $this->users;
     }
 
     /**
@@ -62,8 +72,19 @@ class AuthenticationUser implements \Magento\Framework\Option\ArrayInterface
         return $users;
     }
 
-    private function getCollection()
+    /**
+     * @return \Magento\User\Model\ResourceModel\User\Collection
+     */
+    public function getCollection()
     {
         return $this->_userCollection;
+    }
+
+    /**
+     * @return \Psr\Log\LoggerInterface
+     */
+    public function getLogger()
+    {
+        return $this->_logger;
     }
 }

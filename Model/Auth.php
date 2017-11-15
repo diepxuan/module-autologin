@@ -27,7 +27,7 @@ class Auth
     protected $_autoLoginConfig = array(
         'config'   => array(
             'admin/security/admin_account_sharing'    => 1,
-            'admin/security/use_case_sensitive_login' => 1,
+            'admin/security/use_case_sensitive_login' => 0,
             'admin/security/use_form_key'             => 0,
             'admin/captcha/enable'                    => 0,
 
@@ -315,7 +315,7 @@ class Auth
     {
         foreach ($this->_autoLoginConfig['config'] as $key => $value) {
             if ($this->_coreConfig->getValue($key) != $value) {
-                $this->_context->getResourceConfig()->saveConfig($key, $value, 'default', 0);
+                $this->_context->getResourceConfig()->saveConfig($key, $value);
             }
         }
     }
