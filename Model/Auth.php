@@ -277,6 +277,7 @@ class Auth
     protected function _isEnable()
     {
         if ($this->getAuthStorage()->isLoggedIn()) {
+            // $this->getAuthStorage()->prolong();
             return false;
         }
 
