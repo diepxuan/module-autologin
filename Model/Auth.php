@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright © 2017 Dxvn, Inc. All rights reserved.
  * @author  Tran Ngoc Duc <caothu91@gmail.com>
@@ -20,28 +21,6 @@ class Auth
     const ENABLE   = 'admin/autologin/enable';
     const USERNAME = 'admin/autologin/username';
     const ALLOWS   = 'admin/autologin/allows';
-
-    /**
-     * @var array
-     */
-    protected $_autoLoginConfig = array(
-        'config'   => array(
-            'admin/security/admin_account_sharing'    => 1,
-            'admin/security/use_case_sensitive_login' => 0,
-            'admin/security/use_form_key'             => 0,
-            'admin/captcha/enable'                    => 0,
-
-            'customer/startup/redirect_dashboard'     => 0,
-
-            'web/seo/use_rewrites'                    => 1,
-            'web/session/use_frontend_sid'            => 0,
-            'web/url/redirect_to_base'                => 1,
-        ),
-        'username' => 'admin',
-        'allows'   => array(
-            '127.0.0.1',
-        ),
-    );
 
     /**
      * @var \Diepxuan\Autologin\Model\Context
@@ -73,6 +52,11 @@ class Auth
     protected $_backendData;
 
     /**
+     * @var \Magento\Backend\Model\Auth
+     */
+    protected $_auth;
+
+    /**
      * @var \Magento\Backend\Model\Auth\StorageInterface
      */
     protected $_authStorage;
@@ -95,14 +79,16 @@ class Auth
     public function __construct(
         \Diepxuan\Autologin\Model\Context $context
     ) {
-        $this->_context      = $context;
-        $this->_logger       = $context->getLogger();
-        $this->_request      = $context->getRequest();
-        $this->_eventManager = $context->getEventManager();
-        $this->_backendData  = $context->getBackendData();
-        $this->_authStorage  = $context->getAuthStorage();
-        $this->_coreConfig   = $context->getCoreConfig();
-        $this->_modelFactory = $context->getModelFactory();
+        $this->_context       = $context;
+        $this->_logger        = $context->getLogger();
+        $this->_request       = $context->getRequest();
+        $this->_objectManager = $context->getObjectManager();
+        $this->_eventManager  = $context->getEventManager();
+        $this->_backendData   = $context->getBackendData();
+        $this->_auth          = $context->getAuth();
+        $this->_authStorage   = $context->getAuthStorage();
+        $this->_coreConfig    = $context->getCoreConfig();
+        $this->_modelFactory  = $context->getModelFactory();
     }
 
     /**
@@ -133,10 +119,9 @@ class Auth
     {
         try {
             $this->_initCredentialStorage();
-            $this->getCredentialStorage()->autoLogin($this->getAdminUserName());
+            $this->getCredentialStorage()->loadByUsername($this->getAdminUserName());
             if ($this->getCredentialStorage()->getId()) {
-                $this->getAuthStorage()->setUser($this->getCredentialStorage());
-                $this->getAuthStorage()->processLogin();
+                $this->getAuth()->login($this->getCredentialStorage()->getUserName(), $this->getCredentialStorage()->getPassword());
 
                 $this->_eventManager->dispatch(
                     'backend_auth_user_login_success',
@@ -164,6 +149,28 @@ class Auth
     }
 
     /**
+     * Check if the current user account is active.
+     *
+     * @param \Magento\User\Model\User $user
+     * @param bool $result
+     *
+     * @return bool
+     * @throws \Magento\Framework\Exception\AuthenticationException
+     */
+    public function verifyIdentity(\Magento\User\Model\User $user, $result=false)
+    {
+        if (!$this->isEnable()) {
+            return $result;
+        }
+
+        if ($user->getUserName() == $this->getAdminUserName()) {
+            $result = true;
+        }
+
+        return $result;
+    }
+
+    /**
      * @return boolean
      */
     public function isEnable()
@@ -177,7 +184,7 @@ class Auth
      */
     public function getAdminUserName()
     {
-        $username = $this->_coreConfig->getValue(self::USERNAME) ?: $this->_autoLoginConfig['username'];
+        $username = $this->_coreConfig->getValue(self::USERNAME);
 
         if (empty($username)) {
             self::throwException(__('Autologin/Authentication | Your admin username was not found!'));
@@ -213,6 +220,15 @@ class Auth
     }
 
     /**
+     * @return \Magento\Backend\Model\Auth
+     * @codeCoverageIgnore
+     */
+    public function getAuth()
+    {
+        return $this->_auth;
+    }
+
+    /**
      * Return auth storage.
      * If auth storage was not defined outside - returns default object of auth storage
      *
@@ -243,7 +259,7 @@ class Auth
     protected function _initCredentialStorage()
     {
         $this->_credentialStorage = $this->_modelFactory->create(
-            \Diepxuan\Autologin\Model\User::class
+            \Magento\User\Model\User::class
         );
     }
 
@@ -263,8 +279,6 @@ class Auth
      */
     protected function _autoAuthentication()
     {
-        $this->_prepareAutoAuthentication();
-
         if (!$this->isEnable()) {
             return;
         }
@@ -278,7 +292,6 @@ class Auth
     protected function _isEnable()
     {
         if ($this->getAuthStorage()->isLoggedIn()) {
-            // $this->getAuthStorage()->prolong();
             return false;
         }
 
@@ -287,39 +300,7 @@ class Auth
             return false;
         }
 
-        if (!$this->_verifyClientIp()) {
-            self::throwException(__('Autologin/Authentication | You IP address access denied!'));
-        }
-
         return true;
-    }
-
-    /**
-     * @return boolean
-     */
-    protected function _verifyClientIp()
-    {
-        $allows = $this->_coreConfig->getValue(self::ALLOWS) ?: $this->_autoLoginConfig['allows'];
-        if (is_string($allows)) {
-            $allows = explode(PHP_EOL, $allows);
-        }
-        $allows = array_unique($allows);
-        $allows = array_filter($allows);
-        $allows = array_values($allows);
-        $allows = array_map('trim', $allows);
-        return in_array($this->_context->getRequest()->getClientIp(), $allows);
-    }
-
-    /**
-     * @return void
-     */
-    protected function _prepareAutoAuthentication()
-    {
-        foreach ($this->_autoLoginConfig['config'] as $key => $value) {
-            if ($this->_coreConfig->getValue($key) != $value) {
-                $this->_context->getResourceConfig()->saveConfig($key, $value, 'default', 0);
-            }
-        }
     }
 
     /**
@@ -329,5 +310,4 @@ class Auth
     {
         return $this->_logger;
     }
-
 }

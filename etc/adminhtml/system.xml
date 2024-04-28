@@ -9,20 +9,14 @@
     <system>
         <section id="admin" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <group id="autologin" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>AutoLogin</label>
+                <label>Auto Login</label>
                 <field id="enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
-                    <label>Autologin?</label>
+                    <label>Enable Autologin in Admin</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="username" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
-                    <label>UserName</label>
+                    <label>Admin account</label>
                     <source_model>Diepxuan\Autologin\Model\Config\Source\AuthenticationUser</source_model>
-                    <depends>
-                        <field id="enable">1</field>
-                    </depends>
-                </field>
-                <field id="allows" translate="label" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
-                    <label>Allows</label>
                     <depends>
                         <field id="enable">1</field>
                     </depends>

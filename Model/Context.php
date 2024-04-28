@@ -49,6 +49,11 @@ class Context
     protected $_backendData;
 
     /**
+     * @var \Magento\Backend\Model\Auth
+     */
+    protected $_auth;
+
+    /**
      * @var \Magento\Backend\Model\Auth\StorageInterface
      */
     protected $_authStorage;
@@ -75,6 +80,7 @@ class Context
      * @param \Psr\Log\LoggerInterface                                $logger
      * @param \Magento\Framework\Event\ManagerInterface               $eventManager
      * @param \Magento\Backend\Helper\Data                            $backendData
+     * @param \Magento\Backend\Model\Auth                             $auth
      * @param \Magento\Backend\Model\Auth\StorageInterface            $authStorage
      * @param \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage
      * @param \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig
@@ -87,6 +93,7 @@ class Context
         \Psr\Log\LoggerInterface                                $logger,
         \Magento\Framework\Event\ManagerInterface               $eventManager,
         \Magento\Backend\Helper\Data                            $backendData,
+        \Magento\Backend\Model\Auth                             $auth,
         \Magento\Backend\Model\Auth\StorageInterface            $authStorage,
         \Magento\Backend\Model\Auth\Credential\StorageInterface $credentialStorage,
         \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig,
@@ -98,6 +105,7 @@ class Context
         $this->_logger            = $logger;
         $this->_eventManager      = $eventManager;
         $this->_backendData       = $backendData;
+        $this->_auth              = $auth;
         $this->_authStorage       = $authStorage;
         $this->_credentialStorage = $credentialStorage;
         $this->_coreConfig        = $coreConfig;
@@ -162,6 +170,17 @@ class Context
     public function getAuthStorage()
     {
         return $this->_authStorage;
+    }
+
+    /**
+     * Return auth.
+     *
+     * @return \Magento\Backend\Model\Auth
+     * @codeCoverageIgnore
+     */
+    public function getAuth()
+    {
+        return $this->_auth;
     }
 
     /**
