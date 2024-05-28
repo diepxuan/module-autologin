@@ -46,8 +46,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          rm composer.lock || true
-          composer install
+          mkdir -p /tmp/test
+          cd /tmp/test
+          composer require diepxuan/module-autologin
 
       - name: Setup Node.js
         if: false
