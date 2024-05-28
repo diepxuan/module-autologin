@@ -30,7 +30,7 @@ jobs:
         operating-system: [ubuntu-22.04, ubuntu-20.04]
         # php-versions: ['5.3', '5.4', '5.5', '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.3']
         php-versions: ['8.1', '8.2', '8.3']
-    name: build and test using PHP ${{ matrix.php-versions }} with ${{ matrix.operating-system }}
+    name: Build and push package using PHP ${{ matrix.php-versions }} with ${{ matrix.operating-system }}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -82,4 +82,4 @@ jobs:
           version=git describe --tags --abbrev=0 | tr -d . | awk -F. -v OFS=. '{$NF += 1 ; print}' | sed 's/\(.\)/\1./g; s/\.$//'
           git tag $version
           git push --tags
-          git tag | xargs -L 1 | tac | awk 'NR > 3' | xargs git push --delete origin
+          git tag | xargs -L 1 | tac | awk 'NR > 3' | xargs git push --delete origin || true
