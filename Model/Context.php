@@ -15,11 +15,6 @@ namespace Diepxuan\Autologin\Model;
 class Context
 {
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    protected $_objectManager;
-
-    /**
      * @var \Magento\Config\Model\ResourceModel\Config
      */
     protected $_resourceConfig;
@@ -74,7 +69,6 @@ class Context
     protected $_modelFactory;
 
     /**
-     * @param \Magento\Framework\ObjectManagerInterface               $objectManager
      * @param \Magento\Config\Model\ResourceModel\Config              $resourceConfig
      * @param \Magento\Framework\App\Request\Http                     $request
      * @param \Psr\Log\LoggerInterface                                $logger
@@ -87,7 +81,6 @@ class Context
      * @param \Magento\Framework\Data\Collection\ModelFactory         $modelFactory
      */
     public function __construct(
-        \Magento\Framework\ObjectManagerInterface               $objectManager,
         \Magento\Config\Model\ResourceModel\Config              $resourceConfig,
         \Magento\Framework\App\Request\Http                     $request,
         \Psr\Log\LoggerInterface                                $logger,
@@ -99,7 +92,6 @@ class Context
         \Magento\Framework\App\Config\ScopeConfigInterface      $coreConfig,
         \Magento\Framework\Data\Collection\ModelFactory         $modelFactory
     ) {
-        $this->_objectManager     = $objectManager;
         $this->_resourceConfig    = $resourceConfig;
         $this->_request           = $request;
         $this->_logger            = $logger;
@@ -110,14 +102,6 @@ class Context
         $this->_credentialStorage = $credentialStorage;
         $this->_coreConfig        = $coreConfig;
         $this->_modelFactory      = $modelFactory;
-    }
-
-    /**
-     * @return \Magento\Framework\ObjectManagerInterface
-     */
-    public function getObjectManager()
-    {
-        return $this->_objectManager;
     }
 
     /**

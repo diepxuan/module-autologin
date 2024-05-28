@@ -82,7 +82,6 @@ class Auth
         $this->_context       = $context;
         $this->_logger        = $context->getLogger();
         $this->_request       = $context->getRequest();
-        $this->_objectManager = $context->getObjectManager();
         $this->_eventManager  = $context->getEventManager();
         $this->_backendData   = $context->getBackendData();
         $this->_auth          = $context->getAuth();
