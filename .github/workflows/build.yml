@@ -83,4 +83,4 @@ jobs:
           version=git describe --tags --abbrev=0 | tr -d . | awk -F. -v OFS=. '{$NF += 1 ; print}' | sed 's/\(.\)/\1./g; s/\.$//'
           git tag $version
           git push --tags
-          git tag | xargs -L 1 | tac | awk 'NR > 3' | xargs git push --delete origin || true
+          git tag | xargs -L 1 | tac | awk 'NR > 3' | xargs git push --delete $(git remote -v | grep "push" | cut -f1) || true
