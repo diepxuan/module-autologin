@@ -26,4 +26,4 @@ jobs:
   build:
     permissions:
       contents: write
-    uses: diepxuan/.github/.github/workflows/php-module-build.yml@main
+    uses: diepxuan/.github/.github/workflows/php-package-build.yml@main
