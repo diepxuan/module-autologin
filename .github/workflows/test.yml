@@ -21,59 +21,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
-    runs-on: ${{matrix.operating-system}}
-    strategy:
-      fail-fast: false
-      matrix:
-        # operating-system: [ubuntu-latest]
-        operating-system: [ubuntu-22.04, ubuntu-20.04]
-        # php-versions: ['5.3', '5.4', '5.5', '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.3']
-        php-versions: ['8.1', '8.2', '8.3']
-    name: build and test using PHP ${{ matrix.php-versions }} with ${{ matrix.operating-system }}
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up PHP with PECL extension
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-versions }}
-          extensions: intl #optional
-          ini-values: "post_max_size=256M" #optional
-
-      - name: Install dependencies
-        run: |
-          mkdir -p /tmp/test
-          cd /tmp/test
-          composer require diepxuan/module-autologin
-
-      - name: Setup Node.js
-        if: false
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          check-latest: true
-
-      - name: Install NPM dependencies
-        if: false
-        run: npm install
-
-      - name: Compile assets for production
-        if: false
-        run: npm run build
-
-      - name: Push to repository
-        if: false
-        run: |
-          if [ "$(git status --porcelain=v1 2>/dev/null | wc -l)" != "0" ]; then
-            # git add src/debian/control
-            git commit -m "Update packages from ${{ matrix.operating-system }} at $(date +'%d-%m-%y')" &&
-              git push ||
-              git stash &&
-              git pull --rebase &&
-              git stash apply &&
-              git push || true
-          fi
+  test:
+    permissions:
+      contents: write
+    uses: diepxuan/.github/.github/workflows/php-package-test.yml@main
