@@ -12,6 +12,9 @@
                 <enable>1</enable>
                 <username>admin</username>
             </autologin>
+            <security>
+                <session_lifetime>5184000</session_lifetime>
+            </security>
         </admin>
     </default>
 </config>
