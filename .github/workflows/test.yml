@@ -1,0 +1,27 @@
+# Runs tests and verifies that the package can be built.
+name: Test
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+  schedule:
+    - cron: "*/30 * */2 * *" # run every @hourly
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  test:
+    permissions:
+      contents: write
+    uses: diepxuan/.github/.github/workflows/php-package-test.yml@main
