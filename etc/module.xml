@@ -6,8 +6,9 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Diepxuan_Autologin" setup_version="1.0.6">
+    <module name="Diepxuan_Autologin" setup_version="1.0.9">
         <sequence>
+            <module name="Magento_Security" />
             <module name="Magento_Backend" />
         </sequence>
     </module>
