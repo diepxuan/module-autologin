@@ -31,7 +31,7 @@ bin/magento setup:upgrade && bin/magento setup:static-content:deploy
 
 ### Step 2: General configuration
 
-`Login to Magento admin > Stores > Configuration > ADVANCED > Admin > Auto Login > Enable Autologin in Admin > Choose Yes to enable the module.`
+`Login to Magento admin > Stores > Configuration > DIEPXUAN > Auto Login > Enable Autologin in Admin > Choose Yes to enable the module.`
 
 After you finish configuring, save and clear the cache.
 Run the following command:
